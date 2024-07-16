@@ -1,0 +1,8 @@
+[package]
+name = "cryptanalysis"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+pretty_assertions = "1.4.0"
+rand = "0.8.5"

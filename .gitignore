@@ -1,0 +1,5 @@
+/target
+
+# tmp files
+src/rs.bak
+tmp.py
