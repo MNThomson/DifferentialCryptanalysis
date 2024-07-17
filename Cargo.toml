@@ -6,3 +6,10 @@ edition = "2021"
 [dependencies]
 pretty_assertions = "1.4.0"
 rand = "0.8.5"
+
+[dev-dependencies]
+criterion = "0.3"
+
+[[bench]]
+name = "bench"
+harness = false
