@@ -1,6 +1,6 @@
 pub const KEY_SIZE: usize = 16;
 pub const SBOX: [u16; KEY_SIZE] = [14, 4, 13, 1, 2, 15, 11, 8, 3, 10, 6, 12, 5, 9, 0, 7];
-pub const SBOX_INV: [u16; KEY_SIZE] = [14, 3, 4, 8, 1, 12, 10, 15, 7, 13, 9, 6, 11, 2, 0, 5];
+pub const SBOX_INV: [u16; KEY_SIZE] = create_sbox_inv(SBOX);
 pub const PERMUTATION: [u16; KEY_SIZE] = [1, 5, 9, 13, 2, 6, 10, 14, 3, 7, 11, 15, 4, 8, 12, 16];
 
 pub fn substitute(val: u16) -> u16 {
@@ -86,6 +86,13 @@ mod tests {
     }
 
     #[test]
+    fn test_substitute_symmetry() {
+        assert_eq!(substitute_inverse(substitute(0x1234)), 0x1234);
+        assert_eq!(substitute_inverse(substitute(0xFFFF)), 0xFFFF);
+        assert_eq!(substitute_inverse(substitute(0x0000)), 0x0000);
+    }
+
+    #[test]
     fn test_permute() {
         assert_eq!(permute(0x1234), 0x016A);
         assert_eq!(permute(0xFFFF), 0xFFFF);
@@ -105,4 +112,14 @@ mod tests {
         let keys = [0x1111, 0x2222, 0x3333, 0x4444, 0x5555];
         assert_eq!(decrypt_block(encrypt_block(0x1234, &keys), &keys), 0x1234);
     }
+}
+
+const fn create_sbox_inv(sbox: [u16; KEY_SIZE]) -> [u16; KEY_SIZE] {
+        let mut inv = [0u16; KEY_SIZE];
+        let mut i = 0;
+        while i < KEY_SIZE {
+            inv[sbox[i] as usize] = i as u16;
+            i += 1;
+        }
+        inv
 }
