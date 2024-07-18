@@ -2,8 +2,10 @@ use criterion::{black_box, criterion_group, criterion_main, Criterion};
 use cryptanalysis::specification::*;
 
 pub fn criterion_benchmark(c: &mut Criterion) {
-    c.bench_function("substitute", |b| {
-        b.iter(|| substitute(black_box(0x1234), black_box(SBOX)))
+    c.bench_function("substitute", |b| b.iter(|| substitute(black_box(0x1234))));
+
+    c.bench_function("substitute_inverse", |b| {
+        b.iter(|| substitute_inverse(black_box(0x1234)))
     });
 
     c.bench_function("mix_subkey", |b| {
