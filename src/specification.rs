@@ -31,6 +31,7 @@ pub fn mix_subkey(val: u16, subkey: u16) -> u16 {
     val ^ subkey
 }
 
+#[allow(dead_code)]
 pub fn encrypt_block(block: u16, keys: &[u16]) -> u16 {
     let mut block = block;
     (0..3).for_each(|i| {
@@ -115,11 +116,11 @@ mod tests {
 }
 
 const fn create_sbox_inv(sbox: [u16; KEY_SIZE]) -> [u16; KEY_SIZE] {
-        let mut inv = [0u16; KEY_SIZE];
-        let mut i = 0;
-        while i < KEY_SIZE {
-            inv[sbox[i] as usize] = i as u16;
-            i += 1;
-        }
-        inv
+    let mut inv = [0u16; KEY_SIZE];
+    let mut i = 0;
+    while i < KEY_SIZE {
+        inv[sbox[i] as usize] = i as u16;
+        i += 1;
+    }
+    inv
 }

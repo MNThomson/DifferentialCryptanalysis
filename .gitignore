@@ -1,5 +1,6 @@
 /target
 
 # tmp files
-src/rs.bak
-tmp.py
+*.bak
+*.py
+*.pdf
