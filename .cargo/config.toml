@@ -1,2 +1,4 @@
 [alias]
 r = "run -q --release"
+w = "watch -c -x r"
+t = ["watch", "-c", "-x", "nextest run"]
