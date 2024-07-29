@@ -40,8 +40,10 @@ jobs:
 
       - uses: dtolnay/rust-toolchain@1.78.0
 
-      - name: Test
-        run: cargo test
+      - uses: taiki-e/install-action@nextest
+
+      - name: Rust test
+        run: cargo nextest run
 
   build:
     name: Build

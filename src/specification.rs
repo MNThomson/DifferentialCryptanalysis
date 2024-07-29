@@ -60,6 +60,16 @@ pub fn decrypt_block(block: u16, keys: &[u16]) -> u16 {
     block
 }
 
+const fn create_sbox_inv(sbox: [u16; KEY_SIZE]) -> [u16; KEY_SIZE] {
+    let mut inv = [0u16; KEY_SIZE];
+    let mut i = 0;
+    while i < KEY_SIZE {
+        inv[sbox[i] as usize] = i as u16;
+        i += 1;
+    }
+    inv
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -113,14 +123,4 @@ mod tests {
         let keys = [0x1111, 0x2222, 0x3333, 0x4444, 0x5555];
         assert_eq!(decrypt_block(encrypt_block(0x1234, &keys), &keys), 0x1234);
     }
-}
-
-const fn create_sbox_inv(sbox: [u16; KEY_SIZE]) -> [u16; KEY_SIZE] {
-    let mut inv = [0u16; KEY_SIZE];
-    let mut i = 0;
-    while i < KEY_SIZE {
-        inv[sbox[i] as usize] = i as u16;
-        i += 1;
-    }
-    inv
 }
