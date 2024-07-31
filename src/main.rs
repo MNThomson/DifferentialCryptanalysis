@@ -45,6 +45,16 @@ impl Characteristic {
     }
 }
 
+impl std::fmt::Display for Characteristic {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "\tdelta_P: {:#018b}\n\tdelta_U: {:#018b}\n\tprobability: {}\n",
+            self.dp, self.du, self.probability
+        )
+    }
+}
+
 /// Reference: `4.3 Constructing Differential Characteristics`
 fn find_characteristic(offset: usize) -> Characteristic {
     let mut c = Characteristic {
@@ -92,11 +102,8 @@ fn main() {
     for key in _subkey1.iter() {
         println!("{:016b}", key);
     }
+
     let cb = find_characteristic(4);
-    println!(
-        "Differential Characteristics:\n\tA: {:?}\n\tB: {:?}",
-        ca, cb
-    );
     let _subkey2 = subkeys_generator(4);
     for key in _subkey2.iter() {
         println!("{:016b}", key);
