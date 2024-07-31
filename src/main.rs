@@ -68,11 +68,39 @@ fn find_characteristic(offset: usize) -> Characteristic {
     c
 }
 
+fn subkeys_generator(bitoffset: u16) -> Box<[u16; 256]> {
+    let mut keys = Box::new([0 as u16; 256]);
+
+    // NOTE: no need to mask `i` and `j`, since values in
+    // range [0,15) stays within 4 bits
+    for i in 0..16 {
+        let ki: u16 = i << (8 + bitoffset);
+        for j in 0..16 {
+            let kj: u16 = j << bitoffset;
+            keys[((i * 16) + j) as usize] = ki | kj;
+        }
+    }
+
+    return keys;
+}
+
+fn extract_subkey(subkeys: &[u16; 256]){}
+
 fn main() {
     let ca = find_characteristic(0);
+    let _subkey1 = subkeys_generator(0);
+    for key in _subkey1.iter() {
+        println!("{:016b}", key);
+    }
     let cb = find_characteristic(4);
     println!(
         "Differential Characteristics:\n\tA: {:?}\n\tB: {:?}",
         ca, cb
     );
+    let _subkey2 = subkeys_generator(4);
+    for key in _subkey2.iter() {
+        println!("{:016b}", key);
+    }
+
+    println!("Differential Characteristics:\nA:\n{}\nB:\n{}", ca, cb);
 }
