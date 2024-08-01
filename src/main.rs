@@ -75,7 +75,7 @@ mod cipher {
 
     pub struct Cipher {
         /// 5 round keys, randomly generated. To simulate an attack,
-        /// that this is a private data member, only exists in this
+        /// this is a private data member, only exists in this
         /// `cipher` module.
         ///
         /// The impl function `is_last_round_key` is the only way to
@@ -94,7 +94,6 @@ mod cipher {
             return Cipher { round_keys };
         }
 
-        /// randomly generating 5 round keys
         pub fn encrypt(&self, plaintext: u16) -> u16 {
             return encrypt_block(plaintext, &self.round_keys);
         }
