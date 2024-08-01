@@ -2,7 +2,7 @@ mod specification;
 use rand::Rng;
 use specification::{encrypt_block, mix_subkey, permute, substitute, substitute_inverse};
 
-const ITERATIONS: usize = 0x1000; // 1 out of 10 times i run it with 0x1000 failed...
+const ITERATIONS: usize = 0x1100; // 1 out of 10 times i run it with 0x1000 failed...
 
 struct Characteristic {
     /// Delta p
@@ -91,19 +91,19 @@ mod cipher {
             for el in round_keys.iter_mut() {
                 *el = rng.gen();
             }
-            return Cipher { round_keys };
+            Cipher { round_keys }
         }
 
         pub fn encrypt(&self, plaintext: u16) -> u16 {
-            return encrypt_block(plaintext, &self.round_keys);
+            encrypt_block(plaintext, &self.round_keys)
         }
 
         pub fn partial_decrypt(&self, block: u16, subkey: u16) -> u16 {
-            return substitute_inverse(mix_subkey(block, subkey));
+            substitute_inverse(mix_subkey(block, subkey))
         }
 
         pub fn is_last_round_key(&self, subkey: u16) -> bool {
-            return self.round_keys[4] == subkey;
+            self.round_keys[4] == subkey
         }
     }
 }
@@ -115,10 +115,10 @@ mod attack {
     /// 0b1111_0000_1111_0000 or 0b0000_1111_0000_1111
     pub fn subkeys_generator(bitoffset: u16) -> Box<[u16; 256]> {
         assert!(bitoffset == 4 || bitoffset == 0);
-        let mut keys = Box::new([0 as u16; 256]);
+        let mut keys = Box::new([0_u16; 256]);
 
         // NOTE: no need to mask `i` and `j`, since values in
-        // range [0,15) stays within 4 bits
+        // range [0,16) stays within 4 bits
         for i in 0..16 {
             let ki: u16 = i << (8 + bitoffset);
             for j in 0..16 {
@@ -127,7 +127,7 @@ mod attack {
             }
         }
 
-        return keys;
+        keys
     }
 
     pub fn extract_partial_subkey(
@@ -135,7 +135,7 @@ mod attack {
         subkeys: &[u16; 256],
         c: &Characteristic,
     ) -> u16 {
-        let mut tracker = [0 as u16; 256];
+        let mut tracker = [0_u16; 256];
         let mut rng = rand::thread_rng();
 
         for key_idx in 0..256 {
@@ -170,7 +170,7 @@ mod attack {
             }
         }
 
-        return subkeys[max_idx];
+        subkeys[max_idx]
     }
 }
 
@@ -189,11 +189,11 @@ fn main() {
     let subkey2 = attack::extract_partial_subkey(&cipher, &subkey2, &cb);
 
     // concat and compare
-    let subkey = subkey1 | subkey2;
+    let round_key = subkey1 | subkey2;
 
-    if cipher.is_last_round_key(subkey) {
-        println!("sub key found!\n{:#018b}", subkey);
+    if cipher.is_last_round_key(round_key) {
+        println!("sub key found!\n{:#018b}", round_key);
     } else {
-        println!("failed to find sub key");
+        println!("wrong sub key extracted:\n{:#018b}", round_key);
     }
 }
