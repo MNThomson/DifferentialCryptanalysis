@@ -84,6 +84,7 @@ mod cipher {
     }
 
     impl Cipher {
+        /// randomly generating 5 round keys
         pub fn new() -> Self {
             let mut round_keys: [u16; 5] = [0; 5];
             let mut rng = rand::thread_rng();
@@ -93,7 +94,8 @@ mod cipher {
             return Cipher { round_keys };
         }
 
-        pub fn full_encrypt(&self, plaintext: u16) -> u16 {
+        /// randomly generating 5 round keys
+        pub fn encrypt(&self, plaintext: u16) -> u16 {
             return encrypt_block(plaintext, &self.round_keys);
         }
 
@@ -144,8 +146,8 @@ mod attack {
                 let p1: u16 = rng.gen();
                 let p2 = p1 ^ c.dp;
 
-                let c1 = cipher.full_encrypt(p1);
-                let c2 = cipher.full_encrypt(p2);
+                let c1 = cipher.encrypt(p1);
+                let c2 = cipher.encrypt(p2);
 
                 let u1 = cipher.partial_decrypt(c1, subkey);
                 let u2 = cipher.partial_decrypt(c2, subkey);
