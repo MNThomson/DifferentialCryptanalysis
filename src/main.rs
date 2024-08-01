@@ -1,9 +1,7 @@
 mod specification;
 use rand::Rng;
-use specification::{permute, substitute};
+use specification::{encrypt_block, mix_subkey, permute, substitute, substitute_inverse};
 
-#[derive(Debug)]
-#[allow(dead_code)]
 struct Characteristic {
     /// Delta p
     dp: u16,
