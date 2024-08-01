@@ -2,7 +2,8 @@ mod specification;
 use rand::Rng;
 use specification::{encrypt_block, mix_subkey, permute, substitute, substitute_inverse};
 
-const ITERATIONS: usize = 0x1111; // arbitrary large number
+/// arbitrary large number
+const ITERATIONS: usize = 0x1111;
 
 #[derive(Debug)]
 struct Characteristic {
@@ -74,6 +75,7 @@ fn find_characteristic(offset: usize) -> Characteristic {
 mod cipher {
     use super::*;
 
+    #[derive(Debug)]
     pub struct Cipher {
         /// 5 round keys, randomly generated.
         pub round_keys: [u16; 5],
@@ -106,10 +108,10 @@ mod attack {
     /// Generating all subkeys with bit masking of
     /// 0b1111_0000_1111_0000 or 0b0000_1111_0000_1111.
     /// The bitoffset value can only be 0 or 4.
-    pub fn subkey_generator(bitoffset: u16) -> Box<[u16; 256]> {
+    pub fn subkey_generator(bitoffset: u16) -> [u16; 256] {
         assert!(bitoffset == 4 || bitoffset == 0);
 
-        let mut keys = Box::new([0_u16; 256]);
+        let mut keys = [0_u16; 256];
 
         // NOTE: no need to mask `i` and `j`, values in
         // range [0,16) stay within 4 bits
@@ -167,17 +169,15 @@ mod attack {
 
 fn main() {
     let cipher = cipher::Cipher::new();
-    println!("Generated round keys:");
-    cipher.round_keys.iter().for_each(|round_key: &u16| {
-        println!("{}", round_key);
-    });
+    println!("Random round keys:\n\t{:?}\n", cipher);
 
     // finding characteristics
     let ca = find_characteristic(0);
-    println!("First characteristics:\n{:?}", ca);
-
     let cb = find_characteristic(4);
-    println!("Second characteristics:\n{:?}", cb);
+    println!(
+        "Differential Characteristics:\n\tA: {:?}\n\tB: {:?}\n",
+        ca, cb
+    );
 
     // extracting subkeys
     let subkeys1 = attack::subkey_generator(0);
@@ -186,12 +186,14 @@ fn main() {
     let subkeys2 = attack::subkey_generator(4);
     let round_key_part2 = attack::extract_partial_subkey(&cipher, &subkeys2, &cb);
 
-    // concat and compare
-    let round_key = round_key_part1 | round_key_part2;
+    // Concat and compare
+    let final_round_key = round_key_part1 | round_key_part2;
 
-    if round_key == cipher.round_keys[4] {
-        println!("round key extracted!\n{}", round_key);
+    if final_round_key == cipher.round_keys[4] {
+        println!("Correct round key extracted:");
     } else {
-        println!("wrong round key extracted:\n{}", round_key);
+        println!("Incorrect round key extracted:");
     }
+
+    println!("\t{}", final_round_key);
 }
