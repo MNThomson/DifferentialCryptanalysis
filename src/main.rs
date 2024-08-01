@@ -106,19 +106,51 @@ mod cipher {
     }
 }
 
+mod attack {
+    use super::*;
+
+    /// generating all the sub keys of `bitoffset` dependent masking
+    /// 0b1111_0000_1111_0000 or 0b0000_1111_0000_1111
+    pub fn subkeys_generator(bitoffset: u16) -> Box<[u16; 256]> {
+        assert!(bitoffset == 4 || bitoffset == 0);
+        let mut keys = Box::new([0 as u16; 256]);
+
+        // NOTE: no need to mask `i` and `j`, since values in
+        // range [0,15) stays within 4 bits
+        for i in 0..16 {
+            let ki: u16 = i << (8 + bitoffset);
+            for j in 0..16 {
+                let kj: u16 = j << bitoffset;
+                keys[((i * 16) + j) as usize] = ki | kj;
+            }
+        }
+
+        return keys;
+    }
+
+    }
+}
 
 fn main() {
+    let cipher = cipher::Cipher::new();
+
+    // finding characteristics
     let ca = find_characteristic(0);
-    let _subkey1 = subkeys_generator(0);
-    for key in _subkey1.iter() {
-        println!("{:016b}", key);
-    }
-
     let cb = find_characteristic(4);
-    let _subkey2 = subkeys_generator(4);
-    for key in _subkey2.iter() {
-        println!("{:016b}", key);
-    }
 
-    println!("Differential Characteristics:\nA:\n{}\nB:\n{}", ca, cb);
+    // extracting subkeys
+    let subkey1 = attack::subkeys_generator(0);
+    let subkey1 = attack::extract_subkey(&cipher, &subkey1, &ca);
+
+    let subkey2 = attack::subkeys_generator(4);
+    let subkey2 = attack::extract_subkey(&cipher, &subkey2, &cb);
+
+    // concat and compare
+    let subkey = subkey1 | subkey2;
+
+    if cipher.is_last_round_key(subkey) {
+        println!("sub key found!\n{:#018b}", subkey);
+    } else {
+        println!("failed to find sub key");
+    }
 }
