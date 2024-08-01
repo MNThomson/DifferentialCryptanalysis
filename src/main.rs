@@ -2,6 +2,8 @@ mod specification;
 use rand::Rng;
 use specification::{encrypt_block, mix_subkey, permute, substitute, substitute_inverse};
 
+const ITERATIONS: usize = 0x1000; // 1 out of 10 times i run it with 0x1000 failed...
+
 struct Characteristic {
     /// Delta p
     dp: u16,
@@ -21,7 +23,7 @@ impl Characteristic {
         let mut rng = rand::thread_rng();
         let (mut right, mut wrong) = (0, 0);
 
-        for _ in 0..0x1000 {
+        for _ in 0..ITERATIONS {
             let p1: u16 = rng.gen();
             let p2 = p1 ^ dp;
 
