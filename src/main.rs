@@ -45,16 +45,6 @@ impl Characteristic {
     }
 }
 
-impl std::fmt::Display for Characteristic {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(
-            f,
-            "\tdelta_P: {:#018b}\n\tdelta_U: {:#018b}\n\tprobability: {}\n",
-            self.dp, self.du, self.probability
-        )
-    }
-}
-
 /// Reference: `4.3 Constructing Differential Characteristics`
 fn find_characteristic(offset: usize) -> Characteristic {
     let mut c = Characteristic {
