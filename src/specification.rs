@@ -31,7 +31,6 @@ pub fn mix_subkey(val: u16, subkey: u16) -> u16 {
     val ^ subkey
 }
 
-#[allow(dead_code)]
 pub fn encrypt_block(block: u16, keys: &[u16]) -> u16 {
     let mut block = block;
     (0..3).for_each(|i| {
@@ -45,6 +44,7 @@ pub fn encrypt_block(block: u16, keys: &[u16]) -> u16 {
     block
 }
 
+/// for testing
 #[allow(dead_code)]
 pub fn decrypt_block(block: u16, keys: &[u16]) -> u16 {
     let mut block = block;
