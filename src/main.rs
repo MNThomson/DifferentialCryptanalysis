@@ -68,23 +68,44 @@ fn find_characteristic(offset: usize) -> Characteristic {
     c
 }
 
-fn subkeys_generator(bitoffset: u16) -> Box<[u16; 256]> {
-    let mut keys = Box::new([0 as u16; 256]);
+/// 4.4 Extracting Key Bits
+mod cipher {
+    use super::*;
 
-    // NOTE: no need to mask `i` and `j`, since values in
-    // range [0,15) stays within 4 bits
-    for i in 0..16 {
-        let ki: u16 = i << (8 + bitoffset);
-        for j in 0..16 {
-            let kj: u16 = j << bitoffset;
-            keys[((i * 16) + j) as usize] = ki | kj;
-        }
+    pub struct Cipher {
+        /// 5 round keys, randomly generated. To simulate an attack,
+        /// that this is a private data member, only exists in this
+        /// `cipher` module.
+        ///
+        /// The impl function `is_last_round_key` is the only way to
+        /// verify if the round key is correctly extracted.
+        round_keys: [u16; 5],
     }
 
-    return keys;
+    impl Cipher {
+        pub fn new() -> Self {
+            let mut round_keys: [u16; 5] = [0; 5];
+            let mut rng = rand::thread_rng();
+            for el in round_keys.iter_mut() {
+                *el = rng.gen();
+            }
+            return Cipher { round_keys };
+        }
+
+        pub fn full_encrypt(&self, plaintext: u16) -> u16 {
+            return encrypt_block(plaintext, &self.round_keys);
+        }
+
+        pub fn partial_decrypt(&self, block: u16, subkey: u16) -> u16 {
+            return substitute_inverse(mix_subkey(block, subkey));
+        }
+
+        pub fn is_last_round_key(&self, subkey: u16) -> bool {
+            return self.round_keys[4] == subkey;
+        }
+    }
 }
 
-fn extract_subkey(subkeys: &[u16; 256]){}
 
 fn main() {
     let ca = find_characteristic(0);
