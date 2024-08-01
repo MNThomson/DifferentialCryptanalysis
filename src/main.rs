@@ -2,8 +2,9 @@ mod specification;
 use rand::Rng;
 use specification::{encrypt_block, mix_subkey, permute, substitute, substitute_inverse};
 
-const ITERATIONS: usize = 0x1100; // 1 out of 10 times i run it with 0x1000 failed...
+const ITERATIONS: usize = 0x1111; // arbitrary large number
 
+#[derive(Debug)]
 struct Characteristic {
     /// Delta p
     dp: u16,
@@ -69,18 +70,13 @@ fn find_characteristic(offset: usize) -> Characteristic {
     c
 }
 
-/// 4.4 Extracting Key Bits
+/// Reference: 4.4 Extracting Key Bits
 mod cipher {
     use super::*;
 
     pub struct Cipher {
-        /// 5 round keys, randomly generated. To simulate an attack,
-        /// this is a private data member, only exists in this
-        /// `cipher` module.
-        ///
-        /// The impl function `is_last_round_key` is the only way to
-        /// verify if the round key is correctly extracted.
-        round_keys: [u16; 5],
+        /// 5 round keys, randomly generated.
+        pub round_keys: [u16; 5],
     }
 
     impl Cipher {
@@ -101,24 +97,22 @@ mod cipher {
         pub fn partial_decrypt(&self, block: u16, subkey: u16) -> u16 {
             substitute_inverse(mix_subkey(block, subkey))
         }
-
-        pub fn is_last_round_key(&self, subkey: u16) -> bool {
-            self.round_keys[4] == subkey
-        }
     }
 }
 
 mod attack {
     use super::*;
 
-    /// generating all the sub keys of `bitoffset` dependent masking
-    /// 0b1111_0000_1111_0000 or 0b0000_1111_0000_1111
-    pub fn subkeys_generator(bitoffset: u16) -> Box<[u16; 256]> {
+    /// Generating all subkeys with bit masking of
+    /// 0b1111_0000_1111_0000 or 0b0000_1111_0000_1111.
+    /// The bitoffset value can only be 0 or 4.
+    pub fn subkey_generator(bitoffset: u16) -> Box<[u16; 256]> {
         assert!(bitoffset == 4 || bitoffset == 0);
+
         let mut keys = Box::new([0_u16; 256]);
 
-        // NOTE: no need to mask `i` and `j`, since values in
-        // range [0,16) stays within 4 bits
+        // NOTE: no need to mask `i` and `j`, values in
+        // range [0,16) stay within 4 bits
         for i in 0..16 {
             let ki: u16 = i << (8 + bitoffset);
             for j in 0..16 {
@@ -138,9 +132,7 @@ mod attack {
         let mut tracker = [0_u16; 256];
         let mut rng = rand::thread_rng();
 
-        for key_idx in 0..256 {
-            let subkey = subkeys[key_idx];
-
+        subkeys.iter().enumerate().for_each(|(key_idx, &subkey)| {
             for _ in 0..ITERATIONS {
                 let p1: u16 = rng.gen();
                 let p2 = p1 ^ c.dp;
@@ -151,24 +143,23 @@ mod attack {
                 let u1 = cipher.partial_decrypt(c1, subkey);
                 let u2 = cipher.partial_decrypt(c2, subkey);
 
-                let _delta_c = c1 ^ c2;
                 let delta_u = u1 ^ u2;
 
                 if delta_u == c.du {
                     tracker[key_idx] += 1;
                 }
             }
-        }
+        });
 
-        // find the sub key with max counter.
-        let mut max_counter: u16 = 0;
+        // subkeys with max counter.
+        let mut max_ctr: u16 = 0;
         let mut max_idx: usize = 0;
-        for (idx, &el) in tracker.iter().enumerate() {
-            if el > max_counter {
-                max_counter = el;
+        tracker.iter().enumerate().for_each(|(idx, &ctr)| {
+            if ctr > max_ctr {
+                max_ctr = ctr;
                 max_idx = idx;
             }
-        }
+        });
 
         subkeys[max_idx]
     }
@@ -176,24 +167,31 @@ mod attack {
 
 fn main() {
     let cipher = cipher::Cipher::new();
+    println!("Generated round keys:");
+    cipher.round_keys.iter().for_each(|round_key: &u16| {
+        println!("{}", round_key);
+    });
 
     // finding characteristics
     let ca = find_characteristic(0);
+    println!("First characteristics:\n{:?}", ca);
+
     let cb = find_characteristic(4);
+    println!("Second characteristics:\n{:?}", cb);
 
     // extracting subkeys
-    let subkey1 = attack::subkeys_generator(0);
-    let subkey1 = attack::extract_partial_subkey(&cipher, &subkey1, &ca);
+    let subkeys1 = attack::subkey_generator(0);
+    let round_key_part1 = attack::extract_partial_subkey(&cipher, &subkeys1, &ca);
 
-    let subkey2 = attack::subkeys_generator(4);
-    let subkey2 = attack::extract_partial_subkey(&cipher, &subkey2, &cb);
+    let subkeys2 = attack::subkey_generator(4);
+    let round_key_part2 = attack::extract_partial_subkey(&cipher, &subkeys2, &cb);
 
     // concat and compare
-    let round_key = subkey1 | subkey2;
+    let round_key = round_key_part1 | round_key_part2;
 
-    if cipher.is_last_round_key(round_key) {
-        println!("sub key found!\n{:#018b}", round_key);
+    if round_key == cipher.round_keys[4] {
+        println!("round key extracted!\n{}", round_key);
     } else {
-        println!("wrong sub key extracted:\n{:#018b}", round_key);
+        println!("wrong round key extracted:\n{}", round_key);
     }
 }
