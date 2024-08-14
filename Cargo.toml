@@ -4,8 +4,10 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+chrono = "0.4.38"
 pretty_assertions = "1.4.0"
 rand = "0.8.5"
+threadpool = "1.8.1"
 
 [dev-dependencies]
 criterion = "0.3"
