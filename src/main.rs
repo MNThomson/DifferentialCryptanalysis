@@ -2,10 +2,10 @@ mod specification;
 use chrono::Utc;
 use rand::Rng;
 use specification::{encrypt_block, mix_subkey, permute, substitute, substitute_inverse};
-use std::io::Write;
-use std::sync::Arc;
-use std::sync::Mutex;
-use std::thread;
+use std::{
+    sync::{Arc, Mutex},
+    thread,
+};
 
 /// arbitrary large number
 const ITERATIONS: usize = 0xffff;
@@ -116,7 +116,7 @@ mod cipher {
 
     impl Display for Cipher {
         fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-            let round_keys = self.round_keys.map(|k| to_bin_string(k)).join("\n\t");
+            let round_keys = self.round_keys.map(to_bin_string).join("\n\t");
             write!(f, "{}", round_keys)
         }
     }
@@ -260,7 +260,7 @@ fn main() {
 
     let final_round_key = keypart_1 | keypart_2;
 
-    print!("\n");
+    println!();
     if final_round_key == cipher.round_keys[4] {
         println!("Correct round key extracted: ");
     } else {
