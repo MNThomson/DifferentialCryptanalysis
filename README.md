@@ -2,26 +2,45 @@
 
 Final project for **ECE 406: Applied Cryptography**.
 
-An implementation of differential cryptanalysis outlined in Section 4 of this paper on
+This project implements differential cryptanalysis to attack a simple cipher,
+as outlined in
 [Linear Differential Cryptanalysis](https://www.engr.mun.ca/~howard/PAPERS/ldc_tutorial.pdf).
+The program utilizes multithreading to enhance performance, making the analysis faster and more efficient.
 
-Contributors:
 
-- Max Thomson - V00969053
-- Hal Nguyen - V00972322
+## Usage
 
-## Cipher overview
-
-The program will generate 5 secret round keys randomly before performing the differential
-cryptanalysis attack. These 5 keys are private, and cannot be accessed in other parts of the
-program, the implementation of `cipher::Cipher` exposes a function `is_last_round_key` to verified
-for the correctness of the extracted (last) round key.
-
-## Usage:
+To run the project, use the following command:
 
 ```sh
-cargo run --release
+cargo r
 ```
 
-The flag `--release` builds the binary in release mode, which will apply the optimizations it needs
-for a faster run-time.
+This will output
+
+```txt
+Cipher's round keys:
+        40618   0x9eaa  0b1001111010101010
+        48064   0xbbc0  0b1011101111000000
+        09059   0x2363  0b0010001101100011
+        58711   0xe557  0b1110010101010111
+        07904   0x1ee0  0b0001111011100000
+
+Characteristic found:
+        delta_p:        01280   0x0500  0b0000010100000000
+        delta_u:        24672   0x6060  0b0110000001100000
+
+Characteristic found:
+        delta_p:        02816   0x0b00  0b0000101100000000
+        delta_u:        01542   0x0606  0b0000011000000110
+
+Correct round key extracted:
+        07904   0x1ee0  0b0001111011100000
+
+Done in 1857ms
+```
+
+## Contributors
+
+- [Max Thomson](https://github.com/MNThomson/)
+- [Hal Nguyen](https://github.com/hn275/)
